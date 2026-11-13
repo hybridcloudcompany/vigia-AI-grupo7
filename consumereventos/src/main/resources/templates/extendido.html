@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pronóstico extendido</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a th:href="@{/}" class="muted">← Volver al pronóstico general</a>
+    <div class="muted">Pronóstico extendido · <span th:text="${hora}">22:58</span>
+      <span class="badge" th:text="${p.generadoPorIa} ? 'Generado con Spring AI' : 'Modo reglas'"></span></div>
+  </header>
+
+  <div class="hero" th:classappend="${p.nivel}">
+    <div class="icon" th:text="${p.icono}">⛈</div>
+    <div>
+      <h1><span th:text="${p.servicio}">ms-pagos</span> · <span class="tag" th:text="${#strings.capitalize(p.nivel)}">Tormenta</span></h1>
+      <div class="pct"><span th:text="${p.probabilidad}">80</span>% <span class="sub" th:text="${p.estado}">de caída</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Próximos minutos</h2>
+    <div class="bars">
+      <div class="bar" th:each="v, it : ${p.proyeccion}" th:classappend="${it.first} ? 'now'">
+        <b th:text="${v} + '%'">62%</b>
+        <div class="col" th:style="'height:' + ${v * 0.75} + '%'"></div>
+        <span class="muted" th:text="${it.first} ? 'Ahora' : '+' + ${it.index}">+1</span>
+      </div>
+    </div>
+    <div class="muted">Probabilidad acumulada de caída estimada a partir de las señales actuales.</div>
+  </div>
+
+  <h2 class="sec">Por qué lo pronosticamos</h2>
+  <div class="sig">
+    <div class="card" th:each="s : ${p.senales}" th:classappend="${s.nivel}">
+      <div class="muted" th:text="${s.nombre}">Memoria</div>
+      <div class="v" th:text="${s.valor}">86 %</div>
+      <div class="muted">normal <span th:text="${s.normal}">&lt; 70 %</span></div>
+    </div>
+  </div>
+
+  <div class="todo">
+    <h3>Qué hacer ahora</h3>
+    <div th:text="${p.causa}" class="muted" style="margin-bottom:6px">Causa</div>
+    <ol><li th:each="a : ${p.acciones}" th:text="${a}"></li></ol>
+  </div>
+
+  <h2 class="sec">Recomendaciones registradas</h2>
+  <div class="card">
+    <div class="muted" th:if="${recientes.isEmpty()}">Sin recomendaciones registradas todavía.</div>
+    <ul class="hist" th:unless="${recientes.isEmpty()}">
+      <li th:each="r : ${recientes}">
+        <span class="sev" th:text="${r.severidad}">ALTA</span>
+        <b th:text="${r.tipo}">TIPO</b> — <span th:text="${r.riesgo}">riesgo</span>
+      </li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

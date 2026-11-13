@@ -1,0 +1,184 @@
+openapi: 3.0.3
+
+info:
+  title: Temperature Service API
+  description: API para conversion de temperaturas y lectura de temperatura de ejemplo.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor local
+
+tags:
+  - name: Conversion
+    description: Conversion entre Celsius y Fahrenheit
+  - name: Temperature
+    description: Lectura de temperatura
+  - name: Monitoring
+    description: Endpoints de metricas
+
+paths:
+  /api/v1/convert/celsius-to-fahrenheit:
+    get:
+      tags: [Conversion]
+      operationId: celsiusToFahrenheit
+      summary: Convierte Celsius a Fahrenheit
+      parameters:
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -273.15
+            maximum: 1000
+            example: 25
+      responses:
+        '200':
+          description: Conversion realizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversionResult'
+        '400':
+          description: Valor fuera del rango permitido
+
+  /api/v1/convert/fahrenheit-to-celsius:
+    get:
+      tags: [Conversion]
+      operationId: fahrenheitToCelsius
+      summary: Convierte Fahrenheit a Celsius
+      parameters:
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: -459.67
+            maximum: 1832
+            example: 77
+      responses:
+        '200':
+          description: Conversion realizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversionResult'
+        '400':
+          description: Valor fuera del rango permitido
+
+  /api/v1/temperature:
+    get:
+      tags: [Temperature]
+      operationId: getCurrentTemperature
+      summary: Obtiene la temperatura de ejemplo
+      parameters:
+        - name: unit
+          in: query
+          required: false
+          description: Unidad de salida
+          schema:
+            type: string
+            enum: [CELSIUS, FAHRENHEIT]
+            default: CELSIUS
+        - name: location
+          in: query
+          required: false
+          description: Ubicacion informativa opcional
+          schema:
+            type: string
+            maxLength: 100
+            example: Lima,PE
+      responses:
+        '200':
+          description: Temperatura obtenida correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemperatureReading'
+        '400':
+          description: Unidad o ubicacion invalida
+
+  /metrics:
+    get:
+      tags: [Monitoring]
+      operationId: getMetrics
+      summary: Obtiene metricas en formato Prometheus
+      responses:
+        '200':
+          description: Metricas Prometheus
+          content:
+            text/plain:
+              schema:
+                type: string
+        '503':
+          description: Registro de Prometheus no disponible
+
+  /monitoring/summary:
+    get:
+      tags: [Monitoring]
+      operationId: getMonitoringSummary
+      summary: Obtiene un resumen de metricas de la aplicacion
+      parameters:
+        - name: window
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [1m, 5m, 15m, 1h]
+            default: 5m
+      responses:
+        '200':
+          description: Resumen de memoria, GC, latencia, errores e hilos
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Ventana temporal invalida
+
+components:
+  schemas:
+    ConversionResult:
+      type: object
+      required: [inputValue, inputUnit, outputValue, outputUnit, timestamp]
+      properties:
+        inputValue:
+          type: number
+          format: double
+        inputUnit:
+          type: string
+          enum: [CELSIUS, FAHRENHEIT]
+        outputValue:
+          type: number
+          format: double
+        outputUnit:
+          type: string
+          enum: [CELSIUS, FAHRENHEIT]
+        formula:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    TemperatureReading:
+      type: object
+      required: [value, unit, timestamp]
+      properties:
+        value:
+          type: number
+          format: double
+          example: 23.5
+        unit:
+          type: string
+          enum: [CELSIUS, FAHRENHEIT]
+        location:
+          type: string
+        source:
+          type: string
+          example: DEMO
+        timestamp:
+          type: string
+          format: date-time

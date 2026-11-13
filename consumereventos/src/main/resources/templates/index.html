@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pronóstico — fallas de microservicios</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>⛈ Pronóstico</h1>
+      <div class="sub">Predice la caída de tus microservicios antes de que pase</div>
+    </div>
+    <div style="text-align:right">
+      <div class="muted">Actualizado <span th:text="${hora}">22:58</span> · siguiente en <span id="cuenta" th:text="${refresco}">60</span> s
+        <span class="badge" th:text="${iaActiva} ? 'Spring AI activo' : 'Modo reglas'"></span></div>
+      <a class="btn" th:href="@{/}" style="margin-top:6px">Actualizar pronóstico</a>
+    </div>
+  </header>
+
+  <section class="alert" th:if="${principal != null}">
+    <div>
+      <h2>Alerta de tormenta</h2>
+      <div class="big"><span th:text="${principal.probabilidad}">80</span>% de probabilidad de caída</div>
+      <div><b th:text="${principal.servicio}">ms-pagos</b> · <span th:text="${principal.estado}">en los próximos ~5 minutos</span></div>
+      <p><a th:href="@{/pronostico/{s}(s=${principal.servicio})}">Ver pronóstico extendido →</a></p>
+    </div>
+    <div>
+      <h3>Causa probable</h3>
+      <div th:text="${principal.causa}">Causa</div>
+      <h3 style="margin-top:14px">Qué hacer ahora</h3>
+      <ol><li th:each="a : ${principal.acciones}" th:text="${a}"></li></ol>
+    </div>
+  </section>
+
+  <h2 class="sec">Pronóstico por microservicio · próximos 15 min</h2>
+  <div class="grid">
+    <div class="card" th:each="p : ${pronosticos}" th:classappend="${p.nivel}">
+      <a class="link" th:href="@{/pronostico/{s}(s=${p.servicio})}">
+        <div class="sv" th:text="${p.servicio}">ms</div>
+        <div class="pct"><span th:text="${p.icono}">☀</span> <span th:text="${p.probabilidad} + '%'">5%</span></div>
+        <div class="tag" th:text="${p.estado}">Despejado</div>
+        <div class="muted" th:text="${p.detalle}">detalle</div>
+      </a>
+    </div>
+  </div>
+
+  <h2 class="sec">Recomendaciones registradas</h2>
+  <div class="card">
+    <div class="muted" th:if="${recientes.isEmpty()}">Sin recomendaciones registradas todavía.</div>
+    <ul class="hist" th:unless="${recientes.isEmpty()}">
+      <li th:each="r : ${recientes}">
+        <span class="sev" th:text="${r.severidad}">ALTA</span>
+        <b th:text="${r.tipo}">TIPO</b> — <span th:text="${r.riesgo}">riesgo</span>
+        <div class="muted" th:text="${r.accion}">acción</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="foot">Pronóstico calculado con las métricas reales almacenadas en H2.</div>
+</div>
+<script th:inline="javascript">
+  let s = /*[[${refresco}]]*/ 60;
+  const el = document.getElementById('cuenta');
+  setInterval(() => { s--; if (s <= 0) location.reload(); else el.textContent = s; }, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: consumereventos
+
+  datasource:
+    url: jdbc:h2:file:./data/metricas;AUTO_SERVER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: mi-grupo-de-consumo
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+        spring.json.value.default.type: com.hackatonbcp.consumereventos.MiDTO
+        spring.json.use.type.headers: false
+        spring.json.trusted.packages: "com.hackatonbcp.consumereventos"
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:sin-clave}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+
+server:
+  port: 8091
+
+app:
+  slack:
+    webhook-url: ${SLACK_WEBHOOK_URL:}
+    dashboard-url: ${DASHBOARD_URL:http://localhost:8091}
+  ia:
+    habilitada: ${IA_HABILITADA:false}

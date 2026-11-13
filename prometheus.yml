@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s # Frecuencia de recolección de métricas
+
+remote_write:
+  - url: "http://prometheus-kafka-adapter:9093/receive"
+
+scrape_configs:
+  - job_name: "mi-servicio-temperature"
+    metrics_path: "/actuator/prometheus" # Ruta que expone tu Spring Boot
+    static_configs:
+      - targets: ["host.docker.internal:8080"] # ¡Clave! Apunta al host, no a localhost
